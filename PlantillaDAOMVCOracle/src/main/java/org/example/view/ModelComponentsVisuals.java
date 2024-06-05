@@ -1,36 +1,36 @@
 package org.example.view;
 
-import org.example.model.entities.Alumne;
+import org.example.model.entities.Pelicula;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
 public class ModelComponentsVisuals {
 
-    private DefaultTableModel modelTaulaAlumne;
-    private DefaultTableModel modelTaulaMat;
-    private ComboBoxModel<Alumne.Matricula.Modul> comboBoxModel;
+    private DefaultTableModel modelTaulaPeli;
+    private DefaultTableModel modelTaulaFitxa;
+    private ComboBoxModel<Pelicula.Fitxa.Caracteristica> comboBoxModel;
 
     //Getters
 
 
-    public ComboBoxModel<Alumne.Matricula.Modul> getComboBoxModel() {
+    public ComboBoxModel<Pelicula.Fitxa.Caracteristica> getComboBoxModel() {
         return comboBoxModel;
     }
 
-    public DefaultTableModel getModelTaulaAlumne() {
-        return modelTaulaAlumne;
+    public DefaultTableModel getModelTaulaPeli() {
+        return modelTaulaPeli;
     }
 
-    public DefaultTableModel getModelTaulaMat() {
-        return modelTaulaMat;
+    public DefaultTableModel getModelTaulaFitxa() {
+        return modelTaulaFitxa;
     }
 
     public ModelComponentsVisuals() {
 
 
         //Anem a definir l'estructura de la taula dels alumnes
-        modelTaulaAlumne =new DefaultTableModel(new Object[]{"Nom","Pes","És alumne?","Object"},0){
+        modelTaulaPeli =new DefaultTableModel(new Object[]{"Titol","Nota","Estat","Object"},0){
             /**
              * Returns true regardless of parameter values.
              *
@@ -57,8 +57,6 @@ public class ModelComponentsVisuals {
                         return String.class;
                     case 1:
                         return Double.class;
-                    case 2:
-                        return Boolean.class;
                     default:
                         return Object.class;
                 }
@@ -69,7 +67,7 @@ public class ModelComponentsVisuals {
 
 
         //Anem a definir l'estructura de la taula de les matrícules
-        modelTaulaMat =new DefaultTableModel(new Object[]{"MP","Nota"},0){
+        modelTaulaFitxa = new DefaultTableModel(new Object[]{"Característica", "Valor"}, 0) {
             /**
              * Returns true regardless of parameter values.
              *
@@ -80,20 +78,16 @@ public class ModelComponentsVisuals {
              */
             @Override
             public boolean isCellEditable(int row, int column) {
-
-                //Fem que TOTES les cel·les de la columna 1 de la taula es puguen editar
-                //if(column==1) return true;
+                //Fem que cap cel·la es pugui editar
                 return false;
             }
 
-            //Permet definir el tipo de cada columna
-            @Override
+            //Definim el tipo de cada columna
             public Class getColumnClass(int column) {
                 switch (column) {
                     case 0:
-                        return Alumne.Matricula.Modul.class;
                     case 1:
-                        return Integer.class;
+                        return String.class;
                     default:
                         return Object.class;
                 }
@@ -103,7 +97,7 @@ public class ModelComponentsVisuals {
 
 
         //Estructura del comboBox
-        comboBoxModel=new DefaultComboBoxModel<>(Alumne.Matricula.Modul.values());
+        comboBoxModel=new DefaultComboBoxModel<>(Pelicula.Fitxa.Caracteristica.values());
 
 
 

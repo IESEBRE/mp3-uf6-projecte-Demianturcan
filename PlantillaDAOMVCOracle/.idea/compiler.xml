@@ -9,5 +9,8 @@
         <module name="PlantillaDAOMVCOracle" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="PeliDAOMVCOracle" target="11" />
+    </bytecodeTargetLevel>
   </component>
 </project>
