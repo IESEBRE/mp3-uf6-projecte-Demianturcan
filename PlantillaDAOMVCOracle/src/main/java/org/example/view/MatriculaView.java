@@ -22,7 +22,7 @@ public class MatriculaView extends JFrame{
     //Getters
 
 
-    public JTable getTaulaMat() {
+    public JTable getTaulaFitxa() {
         return taulaMat;
     }
 

@@ -1,11 +1,11 @@
 package org.example.controller;
 
-import org.example.model.entities.Alumne;
+import org.example.model.entities.Pelicula;
+import org.example.model.entities.Pelicula.Fitxa;
 import org.example.model.exceptions.DAOException;
-import org.example.model.entities.Alumne.Matricula;
 import org.example.view.ModelComponentsVisuals;
-import org.example.model.impls.AlumneDAOJDBCOracleImpl;
-import org.example.view.MatriculaView;
+import org.example.model.impls.PeliDAOJDBCOracleImpl;
+import org.example.view.PeliView;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -23,11 +23,13 @@ public class Controller implements PropertyChangeListener { //1. Implementació 
 
 
     private ModelComponentsVisuals modelComponentsVisuals =new ModelComponentsVisuals();
-    private AlumneDAOJDBCOracleImpl dadesAlumnes;
-    private MatriculaView view;
+    private PeliDAOJDBCOracleImpl dadesPelicules;
+    private PeliView view;
 
-    public Controller(AlumneDAOJDBCOracleImpl dadesAlumnes, MatriculaView view) {
-        this.dadesAlumnes = dadesAlumnes;
+    public Controller(PeliDAOJDBCOracleImpl dadesPelicules, PeliView view) {
+        this.dadesPelicules = dadesPelicules;
+
+
         this.view = view;
 
         //5. Necessari per a que Controller reaccione davant de canvis a les propietats lligades
@@ -46,59 +48,64 @@ public class Controller implements PropertyChangeListener { //1. Implementació 
 
         //Carreguem la taula d'alumnes en les dades de la BD
         try {
-            setModelTaulaAlumne(modelComponentsVisuals.getModelTaulaAlumne(),dadesAlumnes.getAll());
+            setModelTaulaPelicula(modelComponentsVisuals.getModelTaulaPeli(), dadesPelicules.getAll());
         } catch (DAOException e) {
             this.setExcepcio(e);
         }
 
+        try {
+            dadesPelicules.creaTaula();
+        } catch (DAOException e) {
+            this.setExcepcio(e);
+        }
             //Fixem el model de la taula dels alumnes
-        JTable taula = view.getTaula();
-        taula.setModel(this.modelComponentsVisuals.getModelTaulaAlumne());
+        JTable taulaPeli = view.getTaulaPeli();
+        taulaPeli.setModel(this.modelComponentsVisuals.getModelTaulaPeli());
         //Amago la columna que conté l'objecte alumne
-        taula.getColumnModel().getColumn(3).setMinWidth(0);
-        taula.getColumnModel().getColumn(3).setMaxWidth(0);
-        taula.getColumnModel().getColumn(3).setPreferredWidth(0);
+        taulaPeli.getColumnModel().getColumn(3).setMinWidth(0);
+        taulaPeli.getColumnModel().getColumn(3).setMaxWidth(0);
+        taulaPeli.getColumnModel().getColumn(3).setPreferredWidth(0);
 
         //Fixem el model de la taula de matrícules
-        JTable taulaMat = view.getTaulaMat();
-        taulaMat.setModel(this.modelComponentsVisuals.getModelTaulaMat());
+        JTable taulaFitxa = view.getTaulaFitxa();
+        taulaFitxa.setModel(this.modelComponentsVisuals.getModelTaulaFitxa());
 
         //Posem valor a el combo d'MPs
-        view.getComboMP().setModel(modelComponentsVisuals.getComboBoxModel());
+        view.getComboCaract().setModel(modelComponentsVisuals.getComboBoxModel());
 
-        //Desactivem la pestanya de la matrícula
+        //Desactivem la pestanya de la fitxes
         view.getPestanyes().setEnabledAt(1, false);
-        view.getPestanyes().setTitleAt(1, "Matrícula de ...");
+        view.getPestanyes().setTitleAt(1, "Fitxa de ...");
 
         //5. Necessari per a que Controller reaccione davant de canvis a les propietats lligades
         canvis.addPropertyChangeListener(this);
     }
 
-    private void setModelTaulaAlumne(DefaultTableModel modelTaulaAlumne, List<Alumne> all) {
+    private void setModelTaulaPelicula(DefaultTableModel modelTaulaPelicula, List<Pelicula> all) {
 
         // Fill the table model with data from the collection
-        for (Alumne estudiant : all) {
-            modelTaulaAlumne.addRow(new Object[]{estudiant.getNom(), estudiant.getPes(), true, estudiant});
+        for (Pelicula peli : all) {
+            modelTaulaPelicula.addRow(new Object[]{peli.getTitol(), peli.getNota(), peli.getEstat(), peli});
         }
     }
 
     private void afegirListeners() {
 
         ModelComponentsVisuals modelo = this.modelComponentsVisuals;
-        DefaultTableModel model = modelo.getModelTaulaAlumne();
-        DefaultTableModel modelMat = modelo.getModelTaulaMat();
-        JTable taula = view.getTaula();
-        JTable taulaMat = view.getTaulaMat();
-        JButton insertarButton = view.getInsertarButton();
-        JButton modificarButton = view.getModificarButton();
-        JButton borrarButton = view.getBorrarButton();
-        JTextField campNom = view.getCampNom();
-        JTextField campPes = view.getCampPes();
-        JCheckBox caixaAlumne = view.getCaixaAlumne();
+        DefaultTableModel modelPeli = modelo.getModelTaulaPeli();
+        DefaultTableModel modelFitxa = modelo.getModelTaulaFitxa();
+        JTable taulaPeli = view.getTaulaPeli();
+        JTable taulaFitxa = view.getTaulaFitxa();
+        JTextField campTitol = view.getCampTitol();
+        JTextField campNota = view.getCampNota();
+        JComboBox comboEstat = view.getComboEstat();
+        JButton insertarButton = view.getInsertaButton();
+        JButton modificarButton = view.getModificaButton();
+        JButton borrarButton = view.getBorraButton();
         JTabbedPane pestanyes = view.getPestanyes();
 
         //Botó insertar
-        view.getInsertarButton().addActionListener(
+        insertarButton.addActionListener(
                 new ActionListener() {
                     /**
                      * Invoked when an action occurs.
@@ -107,42 +114,34 @@ public class Controller implements PropertyChangeListener { //1. Implementació 
                      */
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        JTextField campNom = view.getCampNom();
-                        JTextField campPes = view.getCampPes();
-                        JCheckBox caixaAlumne = view.getCaixaAlumne();
 
-                        if (pestanyes.getSelectedIndex() == 0) {        //Si estem a la pestanya de l'alumne
-                            //Comprovem que totes les caselles continguen informació
-                            if (campNom.getText().isBlank() || campPes.getText().isBlank()) {
-                                JOptionPane.showMessageDialog(null, "Falta omplir alguna dada!!");
-                            } else {
-                                try {
-                                    NumberFormat num = NumberFormat.getNumberInstance(Locale.getDefault());   //Creem un número que entèn la cultura que utilitza l'aplicació
-                                    double pes = num.parse(campPes.getText().trim()).doubleValue();  //intentem convertir el text a double
-                                    if (pes < 1 || pes > 800) throw new ParseException("", 0);
-                                    Alumne al = new Alumne(campNom.getText(), pes, caixaAlumne.isSelected(), new TreeSet<Matricula>());
-                                    model.addRow(new Object[]{campNom.getText(), pes, caixaAlumne.isSelected(), al});
-                                    campNom.setText("Pepe Gotera Ibáñez");
-                                    campNom.setSelectionStart(0);
-                                    campNom.setSelectionEnd(campNom.getText().length());
-                                    campPes.setText("75");
-                                    campNom.requestFocus();         //intentem que el foco vaigue al camp del nom
-                                } catch (ParseException ex) {
-                                    setExcepcio(new DAOException(3));
-//                                    JOptionPane.showMessageDialog(null, "Has d'introduir un pes correcte (>=1 i <=800!!");
-                                    campPes.setSelectionStart(0);
-                                    campPes.setSelectionEnd(campPes.getText().length());
-                                    campPes.requestFocus();
-                                }
+                        if (pestanyes.getSelectedIndex() == 0) {
+                            try {
+                            PeliDAOJDBCOracleImpl imp = new PeliDAOJDBCOracleImpl();
+                                double nota =campNota.getText().isBlank() ? 0 : Double.parseDouble(campNota.getText().trim());
+                                Pelicula peli = new Pelicula(imp.maxId()+1,campTitol.getText(), nota, comboEstat.getSelectedItem(), new TreeSet<Fitxa>());
+                                imp.inserta(peli);
+                                modelPeli.addRow(new Object[]{peli.getTitol(), peli.getNota()==0?" ":peli.getNota(), peli.getEstat(), peli});
+
+                                campTitol.setText("");
+                                campTitol.setSelectionStart(0);
+                                campTitol.setSelectionEnd(campTitol.getText().length());
+
+                                campNota.setText("");
+                                campTitol.requestFocus();         //intentem que el foco vaigue al camp del titol
+
+                            } catch (NumberFormatException ex) {
+                                setExcepcio(new DAOException(3));
+                            } catch (DAOException ex) {
+                                setExcepcio(ex);
                             }
-                        } else {         //Si estem a la pestanya de la matricula
-                            //Obtinc l'alumne de la columna que conté l'objecte
-                            Alumne al = (Alumne) model.getValueAt(taula.getSelectedRow(), 3);
-                            Matricula m = new Matricula((Matricula.Modul) view.getComboMP().getSelectedItem(), Integer.parseInt(view.getCampNota().getText()));
-                            al.getMatricules().add(m);
-                            ompliMatricula(al, modelMat);
 
 
+                        }else{
+                            Pelicula peli = (Pelicula) modelPeli.getValueAt(taulaPeli.getSelectedRow(), 3);
+                            Fitxa m = new Fitxa((Fitxa.Caracteristica) view.getComboCaract().getSelectedItem(), view.getCampValor().getText());
+                            peli.getFitxes().add(m);
+                            ompliFitxa(peli, modelFitxa);
                         }
 
 
@@ -150,7 +149,78 @@ public class Controller implements PropertyChangeListener { //1. Implementació 
                 }
         );
 
-        taula.addMouseListener(new MouseAdapter() {
+        modificarButton.addActionListener(
+                new ActionListener() {
+                    /**
+                     * Invoked when an action occurs.
+                     *
+                     * @param e the event to be processed
+                     */
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+
+                        int filaSel = taulaPeli.getSelectedRow();
+                        int columnaSel = taulaPeli.getSelectedColumn();
+                        PeliDAOJDBCOracleImpl imp = new PeliDAOJDBCOracleImpl();
+                        Pelicula peli = (Pelicula) modelComponentsVisuals.getModelTaulaPeli().getValueAt(filaSel,3);
+
+                        try {
+
+                            double nota =campNota.getText().isBlank() ? 0 : Double.parseDouble(campNota.getText().trim());
+                            //modelPeli.removeRow(filaSel);
+                            //modelPeli.insertRow(filaSel, new Object[]{campTitol.getText(),  campNota.getText(), comboEstat.getSelectedItem()});
+                            Pelicula peliNova = new Pelicula(peli.getId(), campTitol.getText(), nota, comboEstat.getSelectedItem(), new TreeSet<Fitxa>());
+                            modelPeli.setValueAt(campTitol.getText(),filaSel,0);
+                            modelPeli.setValueAt( nota==0?" ":nota,filaSel,1);
+                            modelPeli.setValueAt(comboEstat.getSelectedItem(),filaSel,2);
+                            modelPeli.setValueAt(peliNova,filaSel,3);
+                            imp.update(peliNova);
+
+                            campTitol.requestFocus();         //intentem que el foco vaigue al camp del titol
+
+
+                        } catch (DAOException ex) {
+                            throw new RuntimeException(ex);
+                        }
+
+
+                    }
+                }
+        );
+
+        borrarButton.addActionListener(
+                new ActionListener() {
+                    /**
+                     * Invoked when an action occurs.
+                     *
+                     * @param e the event to be processed
+                     */
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        PeliDAOJDBCOracleImpl imp = new PeliDAOJDBCOracleImpl();
+                        //Mirem si tenim una fila de la taula seleccionada
+                        int filaSel = taulaPeli.getSelectedRow();
+
+                        try {
+                        if (filaSel != -1) {
+                            Pelicula peli = (Pelicula) modelPeli.getValueAt(filaSel,3);
+                            modelPeli.removeRow(filaSel);
+                            imp.borra(peli);
+                            //Posem els camps de text en blanc
+                            campTitol.setText("");
+                            campNota.setText("");
+                        } else JOptionPane.showMessageDialog(null, "Per borrar una fila l'has de seleccionar a la taula");
+
+                        } catch (DAOException ex) {
+                            throw new RuntimeException(ex);
+                        } catch (NumberFormatException b) {
+                            setExcepcio(new DAOException(3));
+                        }
+                    }
+                }
+        );
+
+        taulaPeli.addMouseListener(new MouseAdapter() {
             /**
              * {@inheritDoc}
              *
@@ -159,64 +229,51 @@ public class Controller implements PropertyChangeListener { //1. Implementació 
             @Override
             public void mouseClicked(MouseEvent e) {
                 super.mouseClicked(e);
-
-                //Obtenim el número de la fila seleccionada
-                int filaSel = taula.getSelectedRow();
+                JTextField campTitol = view.getCampTitol();
+                JTextField campNota = view.getCampNota();
+                JComboBox comboEstat = view.getComboEstat();
+                //Al seleccionar la taula omplim els camps de text en els valors de la fila seleccionada
+                int filaSel = taulaPeli.getSelectedRow();
 
                 if (filaSel != -1) {        //Tenim una fila seleccionada
                     //Posem els valors de la fila seleccionada als camps respectius
-                    campNom.setText(model.getValueAt(filaSel, 0).toString());
-                    campPes.setText(model.getValueAt(filaSel, 1).toString().replaceAll("\\.", ","));
-                    caixaAlumne.setSelected((Boolean) model.getValueAt(filaSel, 2));
+                    campTitol.setText(modelPeli.getValueAt(filaSel, 0).toString());
+                    campNota.setText(String.valueOf(modelPeli.getValueAt(filaSel, 1)));
+                    comboEstat.setSelectedItem(modelPeli.getValueAt(filaSel,2));
+                    Pelicula peli = (Pelicula) modelComponentsVisuals.getModelTaulaPeli().getValueAt(filaSel,3);
 
+                    System.out.println(peli.getId());
                     //Activem la pestanya de la matrícula de l'alumne seleccionat
                     view.getPestanyes().setEnabledAt(1, true);
-                    view.getPestanyes().setTitleAt(1, "Matrícula de " + campNom.getText());
+                    view.getPestanyes().setTitleAt(1, "Fitxa de "+ campTitol.getText());
 
                     //Posem valor a el combo d'MPs
-                    //view.getComboMP().setModel(modelo.getComboBoxModel());
-                    ompliMatricula((Alumne) model.getValueAt(filaSel, 3),modelMat);
+                    view.getComboCaract().setModel(modelo.getComboBoxModel());
+                    ompliFitxa((Pelicula) modelPeli.getValueAt(filaSel, 3),modelFitxa);
                 } else {                  //Hem deseleccionat una fila
                     //Posem els camps de text en blanc
-                    campNom.setText("");
-                    campPes.setText("");
+                    campTitol.setText("");
+                    campNota.setText("");
 
                     //Desactivem pestanyes
                     view.getPestanyes().setEnabledAt(1, false);
-                    view.getPestanyes().setTitleAt(1, "Matrícula de ...");
+                    view.getPestanyes().setTitleAt(1, "Fitxa de ...");
                 }
             }
         });
 
-        campNom.addFocusListener(new FocusAdapter() {
-            /**
-             * Invoked when a component loses the keyboard focus.
-             *
-             * @param e
-             */
-            @Override
-            public void focusLost(FocusEvent e) {
-                super.focusLost(e);
-                String regex1="^[A-ZÀ-ÚÑÇ][a-zà-úñç]+\\s+[A-ZÀ-ÚÑÇ][a-zà-úñç]+\\s+[A-ZÀ-ÚÑÇ][a-zà-úñç]+$",
-                        regex2="^[A-ZÀ-ÚÑÇ][a-zà-úñç]+(\\s*,\\s*)[A-ZÀ-ÚÑÇ][a-zà-úñç]+\\s+[A-ZÀ-ÚÑÇ][a-zà-úñç]+$";;
-                //String regex="[À-ú]";
-                //Pattern pattern = Pattern.compile(regex);
-                if(campNom.getText().isBlank() || (!campNom.getText().matches(regex1) && !campNom.getText().matches(regex2))){
-                    setExcepcio(new DAOException(2));
-                }
-            }
-        });
+
         //throw new LaMeuaExcepcio(1,"Ha petat la base de dades");
     }
 
 
 
-    private static void ompliMatricula(Alumne al,DefaultTableModel modelMat) {
+    private static void ompliFitxa(Pelicula peli, DefaultTableModel modelFitxa) {
         //Omplim el model de la taula de matrícula de l'alumne seleccionat
-        modelMat.setRowCount(0);
+        modelFitxa.setRowCount(0);
         // Fill the table model with data from the collection
-        for (Matricula matricula : al.getMatricules()) {
-            modelMat.addRow(new Object[]{matricula.getModul(), matricula.getNota()});
+        for (Fitxa fitxa : peli.getFitxes()) {
+            modelFitxa.addRow(new Object[]{fitxa.getCaract(), fitxa.getValor()});
         }
     }
 
@@ -265,15 +322,15 @@ public class Controller implements PropertyChangeListener { //1. Implementació 
                             JOptionPane.showMessageDialog(null, rebuda.getMessage());
                             System.exit(1);
                             break;
-                        case 1:
+                        case 1, 3:
                             JOptionPane.showMessageDialog(null, rebuda.getMessage());
                             break;
                         case 2:
                             JOptionPane.showMessageDialog(null, rebuda.getMessage());
-                            //this.view.getCampNom().setText(rebuda.getMissatge());
-                            this.view.getCampNom().setSelectionStart(0);
-                            this.view.getCampNom().setSelectionEnd(this.view.getCampNom().getText().length());
-                            this.view.getCampNom().requestFocus();
+                            //this.view.getCampTitol().setText(rebuda.getMissatge());
+                            this.view.getCampTitol().setSelectionStart(0);
+                            this.view.getCampTitol().setSelectionEnd(this.view.getCampTitol().getText().length());
+                            this.view.getCampTitol().requestFocus();
 
                             break;
                     }
